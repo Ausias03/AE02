@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<country>
+    <countryName>Switzerland</countryName>
+    <population>8921981</population>
+    <density>226</density>
+    <area>39516</area>
+    <fertility>1,4</fertility>
+    <age>43</age>
+    <urban>74 %</urban>
+    <share>0,11</share>
+</country>

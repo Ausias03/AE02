@@ -10,6 +10,9 @@ import java.awt.Font;
 import javax.swing.JTextField;
 import javax.swing.JPasswordField;
 import javax.swing.JButton;
+import javax.swing.JSeparator;
+import javax.swing.JTextArea;
+import javax.swing.JScrollPane;
 
 public class VistaMain extends JFrame {
 
@@ -19,6 +22,9 @@ public class VistaMain extends JFrame {
 	private JPasswordField pwdField;
 	private JPasswordField pwdRepField;
 	private JButton btnAlta;
+	private JTextField txtRutaFitxer;
+	private JButton btnImportar;
+	private JTextArea txaMostra;
 	
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -86,6 +92,36 @@ public class VistaMain extends JFrame {
 		btnAlta = new JButton("Donar d'alta");
 		btnAlta.setBounds(461, 67, 118, 34);
 		contentPane.add(btnAlta);		
+		
+		JSeparator separator = new JSeparator();
+		separator.setBounds(35, 116, 544, 2);
+		contentPane.add(separator);
+		
+		JLabel lblFicher = new JLabel("Ruta Fitxer CSV:");
+		lblFicher.setFont(new Font("Segoe UI", Font.BOLD, 14));
+		lblFicher.setBounds(35, 131, 148, 20);
+		contentPane.add(lblFicher);
+		
+		txtRutaFitxer = new JTextField();
+		txtRutaFitxer.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		txtRutaFitxer.setColumns(10);
+		txtRutaFitxer.setBounds(35, 160, 413, 25);
+		contentPane.add(txtRutaFitxer);
+		
+		btnImportar = new JButton("Importar");
+		btnImportar.setBounds(461, 151, 118, 34);
+		contentPane.add(btnImportar);
+		
+		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.setBounds(35, 218, 544, 162);
+		contentPane.add(scrollPane);
+		
+		txaMostra = new JTextArea();
+		scrollPane.setViewportView(txaMostra);
+		
+		JSeparator separator_1 = new JSeparator();
+		separator_1.setBounds(35, 205, 544, 2);
+		contentPane.add(separator_1);
 	}
 
 	public JTextField getTxtUsername() {
@@ -102,5 +138,17 @@ public class VistaMain extends JFrame {
 
 	public JButton getBtnAlta() {
 		return btnAlta;
+	}
+
+	public JTextField getTxtRutaFitxer() {
+		return txtRutaFitxer;
+	}
+
+	public JButton getBtnImportar() {
+		return btnImportar;
+	}
+
+	public JTextArea getTxaMostra() {
+		return txaMostra;
 	}
 }

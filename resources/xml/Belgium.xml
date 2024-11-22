@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<country>
+    <countryName>Belgium</countryName>
+    <population>11738763</population>
+    <density>388</density>
+    <area>30280</area>
+    <fertility>1,4</fertility>
+    <age>42</age>
+    <urban>99 %</urban>
+    <share>0,14</share>
+</country>

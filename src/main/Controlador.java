@@ -53,5 +53,19 @@ public class Controlador {
 			}
 
 		});
+		
+		vistaMain.getBtnImportar().addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if (model.importCSV(vistaMain.getTxtRutaFitxer().getText())) {
+					JOptionPane.showMessageDialog(null, "Dades importades correctament!", "ACTION BUTTON SEARCH",
+							JOptionPane.INFORMATION_MESSAGE);
+					vistaMain.getTxaMostra().setText(model.retrieveXMLS());
+				} else {
+					JOptionPane.showMessageDialog(null, "Error, no s'han pogut importar les dades.", "ACTION BUTTON SEARCH",
+							JOptionPane.INFORMATION_MESSAGE);
+				}
+			}
+
+		});
 	}
 }

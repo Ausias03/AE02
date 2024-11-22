@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<country>
+    <countryName>Uzbekistan</countryName>
+    <population>36361859</population>
+    <density>85</density>
+    <area>425400</area>
+    <fertility>3,5</fertility>
+    <age>27</age>
+    <urban>48 %</urban>
+    <share>0,45</share>
+</country>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<country>
+    <countryName>Luxembourg</countryName>
+    <population>673036</population>
+    <density>260</density>
+    <area>2590</area>
+    <fertility>1,4</fertility>
+    <age>39</age>
+    <urban>87 %</urban>
+    <share>0,01</share>
+</country>

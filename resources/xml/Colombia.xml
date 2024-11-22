@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<country>
+    <countryName>Colombia</countryName>
+    <population>52886363</population>
+    <density>48</density>
+    <area>1109500</area>
+    <fertility>1,6</fertility>
+    <age>32</age>
+    <urban>81 %</urban>
+    <share>0,65</share>
+</country>

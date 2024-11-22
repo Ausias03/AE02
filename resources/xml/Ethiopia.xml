@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<country>
+    <countryName>Ethiopia</countryName>
+    <population>132059767</population>
+    <density>132</density>
+    <area>1000000</area>
+    <fertility>3,9</fertility>
+    <age>19</age>
+    <urban>22 %</urban>
+    <share>1,62</share>
+</country>

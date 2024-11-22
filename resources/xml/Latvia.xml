@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<country>
+    <countryName>Latvia</countryName>
+    <population>1871871</population>
+    <density>30</density>
+    <area>62200</area>
+    <fertility>1,3</fertility>
+    <age>43</age>
+    <urban>67 %</urban>
+    <share>0,02</share>
+</country>

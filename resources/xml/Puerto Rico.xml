@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<country>
+    <countryName>Puerto Rico</countryName>
+    <population>3242204</population>
+    <density>366</density>
+    <area>8870</area>
+    <fertility>0,9</fertility>
+    <age>45</age>
+    <urban>N.A.</urban>
+    <share>0,04</share>
+</country>

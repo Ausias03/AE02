@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<country>
+    <countryName>Taiwan</countryName>
+    <population>23213962</population>
+    <density>656</density>
+    <area>35410</area>
+    <fertility>0,9</fertility>
+    <age>44</age>
+    <urban>83 %</urban>
+    <share>0,28</share>
+</country>
