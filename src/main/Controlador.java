@@ -8,11 +8,13 @@ public class Controlador {
 
 	private VistaLogin vistaLogin;
 	private VistaMain vistaMain;
+	private VistaUser vistaUser;
 	private Model model;
 
-	public Controlador(VistaLogin vistaLogin, VistaMain vistaMain, Model model) {
+	public Controlador(VistaLogin vistaLogin, VistaMain vistaMain, VistaUser vistaUser, Model model) {
 		this.vistaLogin = vistaLogin;
 		this.vistaMain = vistaMain;
+		this.vistaUser = vistaUser;
 		this.model = model;
 
 		initEventHandlers();
@@ -23,8 +25,8 @@ public class Controlador {
 			public void actionPerformed(ActionEvent arg0) {
 				if (model.checkUserInfo(vistaLogin.getTxtUsername().getText(),
 						vistaLogin.getPwdField().getPassword())) {
-					vistaLogin.dispose();
-					vistaMain.setVisible(true);
+					vistaLogin.setVisible(false);
+					vistaUser.setVisible(true);
 				} else {
 					JOptionPane.showMessageDialog(null, "Dades Incorrectes", "ACTION BUTTON SEARCH",
 							JOptionPane.INFORMATION_MESSAGE);
@@ -64,6 +66,30 @@ public class Controlador {
 					JOptionPane.showMessageDialog(null, "Error, no s'han pogut importar les dades.", "ACTION BUTTON SEARCH",
 							JOptionPane.INFORMATION_MESSAGE);
 				}
+			}
+
+		});
+		
+		vistaMain.getBtnVistaUser().addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				vistaMain.setVisible(false);
+				vistaUser.setVisible(true);
+			}
+
+		});
+		
+		vistaUser.getBtnVistaAdmin().addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				vistaUser.setVisible(false);
+				vistaMain.setVisible(true);
+			}
+
+		});
+		
+		vistaUser.getBtnLogOut().addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				vistaUser.setVisible(false);
+				vistaLogin.setVisible(true);
 			}
 
 		});

@@ -25,6 +25,7 @@ public class VistaMain extends JFrame {
 	private JTextField txtRutaFitxer;
 	private JButton btnImportar;
 	private JTextArea txaMostra;
+	private JButton btnVistaUser;
 	
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -46,7 +47,7 @@ public class VistaMain extends JFrame {
 
 	public void initComponents() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 636, 443);
+		setBounds(100, 100, 637, 484);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 
@@ -122,6 +123,11 @@ public class VistaMain extends JFrame {
 		JSeparator separator_1 = new JSeparator();
 		separator_1.setBounds(35, 205, 544, 2);
 		contentPane.add(separator_1);
+		
+		btnVistaUser = new JButton("Anar a Finestra Usuari");
+		btnVistaUser.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		btnVistaUser.setBounds(422, 391, 157, 36);
+		contentPane.add(btnVistaUser);
 	}
 
 	public JTextField getTxtUsername() {
@@ -150,5 +156,9 @@ public class VistaMain extends JFrame {
 
 	public JTextArea getTxaMostra() {
 		return txaMostra;
+	}
+
+	public JButton getBtnVistaUser() {
+		return btnVistaUser;
 	}
 }
