@@ -2,8 +2,9 @@ package main;
 
 public class Principal {
 	public static void main(String[] args) {
-		VistaLogin vista = new VistaLogin();
+		VistaLogin vistaLogin = new VistaLogin();
+		VistaMain vistaMain = new VistaMain();
 		Model model = new Model();
-		Controlador controlador = new Controlador(vista, model);
+		Controlador controlador = new Controlador(vistaLogin, vistaMain, model);
 	}
 }

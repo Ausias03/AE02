@@ -14,7 +14,7 @@ public class Model {
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
 
-			String query = "SELECT login, pwd FROM users WHERE login = ?";
+			String query = "SELECT pwd FROM users WHERE login = ?";
 
 			try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/population", "root", "");
 					PreparedStatement stmt = con.prepareStatement(query);) {
@@ -24,7 +24,6 @@ public class Model {
 				ResultSet rs = stmt.executeQuery();
 
 				if (rs.next()) {
-					String user = rs.getString("login");
 					String hashPwd = rs.getString("pwd");
 
 					return checkPwd(new String(pwd), hashPwd);
@@ -38,10 +37,45 @@ public class Model {
 		}
 	}
 
-	private boolean checkPwd(String pwd, String pwdHash) {
-		String md5Hex = DigestUtils.md5Hex(pwd);
+	public boolean signUpUser(String username, char[] pwd) {
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
 
-		return md5Hex.equals(pwdHash);
+			String queryCreate = "CREATE USER ? IDENTIFIED BY ?";
+			String queryPermissions = "GRANT SELECT on population.population TO ?";
+			String queryInsert = "INSERT INTO users (login, pwd, typus) VALUES (?, ?, ?)";
+
+			try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/population", "root", "");
+					PreparedStatement stmtCreate = con.prepareStatement(queryCreate);
+					PreparedStatement stmtPermissions = con.prepareStatement(queryPermissions);
+					PreparedStatement stmtInsert = con.prepareStatement(queryInsert);) {
+
+				String pwdHash = DigestUtils.md5Hex(new String(pwd));
+
+				// Cree usuari
+				stmtCreate.setString(1, username);
+				stmtCreate.setString(2, pwdHash);
+				stmtCreate.executeUpdate();
+
+				// Li done permisos
+				stmtPermissions.setString(1, username);
+				stmtPermissions.executeUpdate();
+
+				// Inserció del usuari en la tabla users
+				stmtInsert.setString(1, username);
+				stmtInsert.setString(2, pwdHash);
+				stmtInsert.setString(3, "user");
+				int affectedRows = stmtInsert.executeUpdate();
+				return affectedRows > 0;
+			}
+		} catch (SQLException | ClassNotFoundException ex) {
+			System.out.println(ex.getMessage());
+			return false;
+		}
+	}
+
+	private boolean checkPwd(String pwd, String pwdHash) {
+		return DigestUtils.md5Hex(pwd).equals(pwdHash);
 	}
 
 }
