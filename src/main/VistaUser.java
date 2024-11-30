@@ -11,6 +11,7 @@ import javax.swing.JTextField;
 import javax.swing.JTable;
 import javax.swing.JSeparator;
 import javax.swing.JButton;
+import javax.swing.JScrollPane;
 
 public class VistaUser extends JFrame {
 
@@ -21,6 +22,8 @@ public class VistaUser extends JFrame {
 	private JButton btnVistaAdmin;
 	private JButton btnLogOut;
 	private JButton btnBuscar;
+	private JButton btnExportar;
+	private JScrollPane scrollPane;
 
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -42,7 +45,7 @@ public class VistaUser extends JFrame {
 
 	public void initComponents() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 637, 444);
+		setBounds(100, 100, 645, 435);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 
@@ -60,10 +63,13 @@ public class VistaUser extends JFrame {
 		contentPane.add(txtQuery);
 		txtQuery.setColumns(10);
 		
+		scrollPane = new JScrollPane();
+		scrollPane.setBounds(24, 80, 587, 256);
+		contentPane.add(scrollPane);
+		
 		tblResults = new JTable();
+		scrollPane.setViewportView(tblResults);
 		tblResults.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		tblResults.setBounds(24, 80, 587, 256);
-		contentPane.add(tblResults);
 		
 		JSeparator separator = new JSeparator();
 		separator.setBounds(24, 65, 587, 2);
@@ -71,7 +77,7 @@ public class VistaUser extends JFrame {
 		
 		btnVistaAdmin = new JButton("Anar a Finestra Admin");
 		btnVistaAdmin.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		btnVistaAdmin.setBounds(454, 347, 157, 36);
+		btnVistaAdmin.setBounds(129, 347, 157, 36);
 		contentPane.add(btnVistaAdmin);
 		
 		btnLogOut = new JButton("Log Out");
@@ -83,6 +89,11 @@ public class VistaUser extends JFrame {
 		btnBuscar.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		btnBuscar.setBounds(516, 20, 95, 36);
 		contentPane.add(btnBuscar);
+		
+		btnExportar = new JButton("Exportar a CSV");
+		btnExportar.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		btnExportar.setBounds(482, 347, 129, 36);
+		contentPane.add(btnExportar);
 	}
 
 	public JButton getBtnVistaAdmin() {
@@ -95,5 +106,17 @@ public class VistaUser extends JFrame {
 
 	public JButton getBtnBuscar() {
 		return btnBuscar;
+	}
+
+	public JButton getBtnExportar() {
+		return btnExportar;
+	}
+
+	public JTextField getTxtQuery() {
+		return txtQuery;
+	}
+
+	public JTable getTblResults() {
+		return tblResults;
 	}
 }

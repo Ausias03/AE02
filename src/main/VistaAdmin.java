@@ -14,7 +14,7 @@ import javax.swing.JSeparator;
 import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
 
-public class VistaMain extends JFrame {
+public class VistaAdmin extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
@@ -31,7 +31,7 @@ public class VistaMain extends JFrame {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					VistaMain frame = new VistaMain();
+					VistaAdmin frame = new VistaAdmin();
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -40,7 +40,7 @@ public class VistaMain extends JFrame {
 		});
 	}
 	
-	public VistaMain() {
+	public VistaAdmin() {
 		setTitle("AE02");
 		initComponents();
 	}

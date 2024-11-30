@@ -24,3 +24,6 @@ hs_err_pid*
 replay_pid*
 /bin/
 /target/
+
+# XML files created by the app
+/resources/xml

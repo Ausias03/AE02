@@ -10,10 +10,14 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import javax.swing.table.DefaultTableModel;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -30,8 +34,19 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.mysql.cj.xdevapi.Statement;
+
 public class Model {
-	
+
+	private final String ADMIN_USERNAME = "admin";
+	private final String ADMIN_PWD = DigestUtils.md5Hex("admin");
+	private String sessionUsername;
+	private String sessionPwd;
+
+	public void setSessionUsername(String sessionUsername) {
+		this.sessionUsername = sessionUsername;
+	}
+
 	private String XMLROUTE = "resources" + File.separator + "xml";
 
 	public boolean checkUserInfo(String username, char[] pwd) {
@@ -40,8 +55,8 @@ public class Model {
 
 			String query = "SELECT pwd FROM users WHERE login = ?";
 
-			try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/population", "root", "");
-					PreparedStatement stmt = con.prepareStatement(query);) {
+			try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/population", ADMIN_USERNAME,
+					ADMIN_PWD); PreparedStatement stmt = con.prepareStatement(query);) {
 
 				stmt.setString(1, username);
 
@@ -69,7 +84,8 @@ public class Model {
 			String queryPermissions = "GRANT SELECT on population.population TO ?";
 			String queryInsert = "INSERT INTO users (login, pwd, typus) VALUES (?, ?, ?)";
 
-			try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/population", "root", "");
+			try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/population", ADMIN_USERNAME,
+					ADMIN_PWD);
 					PreparedStatement stmtCreate = con.prepareStatement(queryCreate);
 					PreparedStatement stmtPermissions = con.prepareStatement(queryPermissions);
 					PreparedStatement stmtInsert = con.prepareStatement(queryInsert);) {
@@ -98,7 +114,7 @@ public class Model {
 		}
 	}
 
-	public boolean importCSV(String route) {		
+	public boolean importCSV(String route) {
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
 
@@ -113,7 +129,8 @@ public class Model {
 			String queryInsertRegistry = "INSERT INTO population (country, population, density, area, fertility, age, urban, share)"
 					+ "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
-			try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/population", "root", "");
+			try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/population", ADMIN_USERNAME,
+					ADMIN_PWD);
 					PreparedStatement stmtDelete = con.prepareStatement(queryDeleteTable);
 					PreparedStatement stmtCreate = con.prepareStatement(queryCreateTable);
 					PreparedStatement stmtInsert = con.prepareStatement(queryInsertRegistry);) {
@@ -123,7 +140,7 @@ public class Model {
 
 				// Create table
 				stmtCreate.executeUpdate();
-				
+
 				// Creation of XML files
 				createXMLFiles(readCSV(route));
 
@@ -138,7 +155,7 @@ public class Model {
 					stmtInsert.setString(6, cou.getAge());
 					stmtInsert.setString(7, cou.getUrban());
 					stmtInsert.setString(8, cou.getShare());
-					
+
 					int resInsertar = stmtInsert.executeUpdate();
 					if (resInsertar != 1) {
 						stmtDelete.executeUpdate();
@@ -146,14 +163,72 @@ public class Model {
 					}
 				}
 			}
-			
+
 			return true;
 		} catch (SQLException | ClassNotFoundException | IOException ex) {
 			System.out.println(ex.getMessage());
 			return false;
 		}
 	}
+
+	public boolean checkCredentials() {
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+
+			String query = "SELECT typus FROM users WHERE login = ?";
+
+			try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/population", ADMIN_USERNAME,
+					ADMIN_PWD); PreparedStatement stmt = con.prepareStatement(query);) {
+
+				stmt.setString(1, sessionUsername);
+
+				ResultSet rs = stmt.executeQuery();
+
+				if (rs.next()) {
+					String typus = rs.getString("typus");
+					return (typus.equals("admin"));
+				} else {
+					return false;
+				}
+			}
+		} catch (SQLException | ClassNotFoundException ex) {
+			System.out.println(ex.getMessage());
+			return false;
+		}
+	}
 	
+	public DefaultTableModel executeQuery(String query) {
+		DefaultTableModel tableModel = new DefaultTableModel();
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+
+			try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/population", ADMIN_USERNAME, ADMIN_PWD); 
+					PreparedStatement stmt = con.prepareStatement(query);) {
+
+				ResultSet rs = stmt.executeQuery();
+
+				ResultSetMetaData metaData = rs.getMetaData();
+				int columns = metaData.getColumnCount();
+				
+				for (int i = 1; i <= columns; i++) {
+					tableModel.addColumn(metaData.getColumnName(i));
+	            }
+				
+				while (rs.next()) {
+	                Object[] row = new Object[columns];
+	                for (int i = 0; i < columns; i++) {
+	                	row[i] = rs.getObject(i + 1);
+	                }
+	                tableModel.addRow(row);
+	            }
+			}
+		} catch (SQLException | ClassNotFoundException ex) {
+			System.out.println(ex.getMessage());
+			
+		}
+		return tableModel;
+	}
+
 	public String retrieveXMLS() {
 		ArrayList<Country> countries = readXML();
 		String countriesData = "";
@@ -161,6 +236,41 @@ public class Model {
 			countriesData += con.toString() + System.lineSeparator();
 		}
 		return countriesData;
+	}
+	
+	public boolean isSelectQuery(String query) {
+		return (Pattern.matches("^SELECT [\\s\\S]*", query));
+	}
+	
+	public boolean checkQueryPermissions(String query) {
+		if (!isPopulationQuery(query)) {
+			return checkCredentials();
+		} else {
+			return true;
+		}
+	}
+	
+	public boolean populationExists() {
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+
+			String query = "SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = \"population\" AND TABLE_NAME = \"population\";";
+
+			try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/population", ADMIN_USERNAME,
+					ADMIN_PWD); PreparedStatement stmt = con.prepareStatement(query);) {
+				
+				ResultSet rs = stmt.executeQuery();
+
+				return rs.next();
+			}
+		} catch (SQLException | ClassNotFoundException ex) {
+			System.out.println(ex.getMessage());
+			return false;
+		}
+	}
+	
+	public boolean isPopulationQuery(String query) {
+		return Pattern.compile("population").matcher(query).find();
 	}
 
 	private boolean checkPwd(String pwd, String pwdHash) {
@@ -271,12 +381,12 @@ public class Model {
 		}
 		return countries;
 	}
-	
+
 	private ArrayList<Country> readXML() {
 		ArrayList<Country> countries = new ArrayList<Country>();
-		
+
 		File xmlDir = new File(XMLROUTE);
-		
+
 		for (File xmlFile : xmlDir.listFiles()) {
 			try {
 				DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -289,7 +399,8 @@ public class Model {
 					Node node = nodeList.item(i);
 					if (node.getNodeType() == Node.ELEMENT_NODE) {
 						Element eElement = (Element) node;
-						Country country = new Country(eElement.getElementsByTagName("countryName").item(0).getTextContent(),
+						Country country = new Country(
+								eElement.getElementsByTagName("countryName").item(0).getTextContent(),
 								eElement.getElementsByTagName("population").item(0).getTextContent(),
 								eElement.getElementsByTagName("density").item(0).getTextContent(),
 								eElement.getElementsByTagName("area").item(0).getTextContent(),
@@ -305,10 +416,10 @@ public class Model {
 				e.printStackTrace();
 			}
 		}
-		
+
 		return countries;
 	}
-	
+
 	/**
 	 * Mètode que lleva els accents i normalitza un text proporcionat
 	 * 
