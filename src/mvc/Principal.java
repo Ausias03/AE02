@@ -1,4 +1,4 @@
-package main;
+package mvc;
 
 public class Principal {
 	public static void main(String[] args) {

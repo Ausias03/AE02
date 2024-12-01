@@ -1,4 +1,4 @@
-package main;
+package mvc;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -33,21 +33,69 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import classes.Country;
+
+/**
+ * Class that contains the logic of the program
+ * 
+ * @author Ausiàs
+ * @version 1.0
+ */
 public class Model {
+
+	/**
+	 * String Log of the user name specified by the user at the log in screen
+	 */
 	private String sessionUsername;
+
+	/**
+	 * String Log of the password specified by the user at the log in screen
+	 */
 	private String sessionPwd;
+
+	/**
+	 * String Typus / profile of the user in the program
+	 */
 	private String typus;
+
+	/**
+	 * String Registry of the last query specified by the user
+	 */
 	private String queryLog;
+
+	/**
+	 * String Route of the folder with the XML files
+	 */
 	private String XMLROUTE = "resources" + File.separator + "xml";
 
+	/**
+	 * Simple Getter
+	 * 
+	 * @return String Typus / profile of the user in the program
+	 */
 	public String getTypus() {
 		return typus;
 	}
 
+	/**
+	 * Simple Setter
+	 * 
+	 * @param queryLog String The last query made by the user
+	 */
 	public void setQueryLog(String queryLog) {
 		this.queryLog = queryLog;
 	}
 
+	/**
+	 * Method that checks if a user exists by trying to create a connection with the
+	 * user's credentials
+	 * 
+	 * @param username String The name of the user
+	 * @param pwd      String The password of the user
+	 * @throws Exception If a connection wasn't able to be established due to not
+	 *                   finding the user, or any other reasons, the method throws
+	 *                   an Exception
+	 */
 	public void userExists(String username, String pwd) throws Exception {
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
@@ -66,6 +114,14 @@ public class Model {
 		}
 	}
 
+	/**
+	 * Method that creates a new user in the database with a 'client' profile
+	 * 
+	 * @param username String The name of the new user
+	 * @param pwd      String The password of the new user
+	 * @throws Exception A common Exception with a specific message to describe if
+	 *                   something went wrong with the creation of the user
+	 */
 	public void signUpUser(String username, String pwd) throws Exception {
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
@@ -105,6 +161,14 @@ public class Model {
 		}
 	}
 
+	/**
+	 * Method that imports a CSV file and creates a Table with its header, and
+	 * inserts registries into the new table with its content
+	 * 
+	 * @param route String The route where the CSV file is located
+	 * @throws Exception A common Exception with a specific message to describe if
+	 *                   anything went wrong
+	 */
 	public void importCSV(String route) throws Exception {
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
@@ -160,6 +224,18 @@ public class Model {
 		}
 	}
 
+	/**
+	 * Method that executes a query and formats its return into a DefaultTableModel
+	 * object
+	 * 
+	 * @param query String The query specifying the information to retrieve from the
+	 *              database
+	 * @return DefaultTableModel The return of the query formatted into a
+	 *         DefaultTableModel object, fit for a JTable component
+	 * @throws Exception A common Exception with a specific message to describe if
+	 *                   something went wrong when executing the query or formatting
+	 *                   the data
+	 */
 	public DefaultTableModel executeQuery(String query) throws Exception {
 		DefaultTableModel tableModel = new DefaultTableModel();
 		try {
@@ -191,6 +267,14 @@ public class Model {
 		return tableModel;
 	}
 
+	/**
+	 * Method that constructs a string with the data of multiple XML files
+	 * 
+	 * @return String A concatenated string with the data of every Country XML file
+	 *         that it read
+	 * @throws Exception A common Exception with a specific message to describe if
+	 *                   something went wrong when reading the XML files
+	 */
 	public String retrieveXMLS() throws Exception {
 		String countriesData = "";
 		try {
@@ -204,6 +288,12 @@ public class Model {
 		return countriesData;
 	}
 
+	/**
+	 * Method that exports the returned content of a query into a csv file
+	 * 
+	 * @throws Exception A common Exception with a specific message to describe if
+	 *                   anything went wrong
+	 */
 	public void exportCSV() throws Exception {
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
@@ -219,6 +309,7 @@ public class Model {
 				for (int i = 1; i < rsm.getColumnCount(); i++) {
 					csvText += rsm.getColumnName(i) + ";";
 				}
+				csvText = csvText.substring(0, csvText.length() - 1);
 
 				csvText += System.lineSeparator();
 
@@ -226,6 +317,7 @@ public class Model {
 					for (int i = 1; i < rsm.getColumnCount(); i++) {
 						csvText += rs.getString(i) + ";";
 					}
+					csvText = csvText.substring(0, csvText.length() - 1);
 					csvText += System.lineSeparator();
 				}
 
@@ -240,6 +332,10 @@ public class Model {
 		}
 	}
 
+	/**
+	 * Method that checks a users credentials by trying to execute a query on a
+	 * database
+	 */
 	private void checkCredentials() {
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
@@ -264,6 +360,15 @@ public class Model {
 		}
 	}
 
+	/**
+	 * Method that mounts a dynamic Create Table Query based on the header of a csv
+	 * file
+	 * 
+	 * @param headerCSV String The header of the csv file from which the query is
+	 *                  going to be created
+	 * @return String A Create Table query with the fields contained in the csv
+	 *         header
+	 */
 	private String createTableQuery(String headerCSV) {
 		String[] fields = headerCSV.split(";");
 
@@ -278,6 +383,13 @@ public class Model {
 		return queryCreateTable;
 	}
 
+	/**
+	 * Method that mounts a dynamic Insert Query based on the header of a csv file
+	 * 
+	 * @param headerCSV String The header of the csv file from which the query is
+	 *                  going to be created
+	 * @return String An insert query with the fields contained in the csv header
+	 */
 	private String createInsertQuery(String headerCSV) {
 		String[] fields = headerCSV.split(";");
 
@@ -297,6 +409,17 @@ public class Model {
 		return queryInsertRegistry;
 	}
 
+	/**
+	 * Method that creates an XML file for every Country object contained in an
+	 * ArrayList
+	 * 
+	 * @param countries ArrayList<Country> List with all the objects that are going
+	 *                  to be written
+	 * @throws ParserConfigurationException If there is an Exception when trying to
+	 *                                      write the files
+	 * @throws TransformerException         If there is an Exception when trying to
+	 *                                      write the files
+	 */
 	private void createXMLFiles(ArrayList<Country> countries)
 			throws ParserConfigurationException, TransformerException {
 		File xmlDir = new File("resources/xml");
@@ -367,6 +490,14 @@ public class Model {
 		}
 	}
 
+	/**
+	 * Method that reads a csv file and creates objects with the content of the file
+	 * 
+	 * @param routeCSV String The route where the csv file is located
+	 * @return ArrayList<Country> List with all the Country objects retrieved from
+	 *         the csv file
+	 * @throws IOException If there is an Exception when trying to read the file
+	 */
 	private ArrayList<Country> readCSV(String routeCSV) throws IOException {
 		ArrayList<Country> countries = new ArrayList<Country>();
 		try {
@@ -387,6 +518,19 @@ public class Model {
 		return countries;
 	}
 
+	/**
+	 * Method that reads a number of XML files and creates objects with the content
+	 * of the files
+	 * 
+	 * @return ArrayList<Country> List with all the Country objects retrieved from
+	 *         the XML files
+	 * @throws IOException                  If there is an Exception when trying to
+	 *                                      read the files
+	 * @throws SAXException                 If there is an Exception when trying to
+	 *                                      read the files
+	 * @throws ParserConfigurationException If there is an Exception when trying to
+	 *                                      read the files
+	 */
 	private ArrayList<Country> readXML() throws IOException, SAXException, ParserConfigurationException {
 		ArrayList<Country> countries = new ArrayList<Country>();
 
@@ -425,6 +569,12 @@ public class Model {
 		return countries;
 	}
 
+	/**
+	 * Method that writes a given text into a csv file
+	 * 
+	 * @param csvText String Text to write
+	 * @throws IOException If there is an Exception when trying to write the text
+	 */
 	private void writeCsv(String csvText) throws IOException {
 		try (FileWriter fw = new FileWriter("resources\\csv\\exportedData.csv")) {
 			fw.write(csvText);
@@ -434,10 +584,10 @@ public class Model {
 	}
 
 	/**
-	 * Mètode que lleva els accents i normalitza un text proporcionat
+	 * Method that removes the accents and normalizes a given text.
 	 * 
-	 * @param text String Text que es vol normalitzar
-	 * @return String Text normalitzat sense accents
+	 * @param text String Text to normalize
+	 * @return String Normalized text without accents
 	 */
 	private String removeAccents(String text) {
 		String normalizedText = Normalizer.normalize(text, Normalizer.Form.NFD);

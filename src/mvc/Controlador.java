@@ -1,9 +1,10 @@
-package main;
+package mvc;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
 
 public class Controlador {
 
@@ -84,6 +85,11 @@ public class Controlador {
 			public void actionPerformed(ActionEvent arg0) {
 				vistaAdmin.setVisible(false);
 				vistaUser.setVisible(true);
+				vistaAdmin.getTxtUsername().setText("");
+				vistaAdmin.getPwdField().setText("");
+				vistaAdmin.getPwdRepField().setText("");
+				vistaAdmin.getTxtRutaFitxer().setText("");
+				vistaAdmin.getTxaMostra().setText("");
 			}
 
 		});
@@ -106,6 +112,7 @@ public class Controlador {
 				vistaUser.setVisible(false);
 				vistaLogin.setVisible(true);
 				vistaUser.getTxtQuery().setText("");
+				vistaUser.getTblResults().setModel(new DefaultTableModel());
 			}
 
 		});
@@ -118,8 +125,8 @@ public class Controlador {
 					vistaUser.getTblResults().setModel(model.executeQuery(query));
 					model.setQueryLog(query);
 				} catch (Exception ex) {
-					JOptionPane.showMessageDialog(null, ex.getMessage(),
-							"ACTION BUTTON SEARCH", JOptionPane.INFORMATION_MESSAGE);
+					JOptionPane.showMessageDialog(null, ex.getMessage(), "ACTION BUTTON SEARCH",
+							JOptionPane.INFORMATION_MESSAGE);
 				}
 			}
 

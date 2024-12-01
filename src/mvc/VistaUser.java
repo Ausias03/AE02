@@ -1,4 +1,4 @@
-package main;
+package mvc;
 
 import java.awt.EventQueue;
 
