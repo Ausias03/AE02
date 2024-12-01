@@ -2,6 +2,9 @@ package main;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.sql.SQLException;
+
 import javax.swing.JOptionPane;
 
 public class Controlador {
@@ -28,6 +31,7 @@ public class Controlador {
 					vistaLogin.setVisible(false);
 					vistaUser.setVisible(true);
 					model.setSessionUsername(vistaLogin.getTxtUsername().getText());
+					model.setSessionPwd(new String(vistaLogin.getPwdField().getPassword()));
 				} else {
 					JOptionPane.showMessageDialog(null, "Dades Incorrectes", "ACTION BUTTON SEARCH",
 							JOptionPane.INFORMATION_MESSAGE);
@@ -40,7 +44,8 @@ public class Controlador {
 			public void actionPerformed(ActionEvent arg0) {
 				if (new String(vistaAdmin.getPwdField().getPassword())
 						.equals(new String(vistaAdmin.getPwdRepField().getPassword()))) {
-					if (model.signUpUser(vistaAdmin.getTxtUsername().getText(), vistaAdmin.getPwdField().getPassword())) {
+					if (model.signUpUser(vistaAdmin.getTxtUsername().getText(),
+							vistaAdmin.getPwdField().getPassword())) {
 						JOptionPane.showMessageDialog(null, "Usuari afegit!", "ACTION BUTTON SEARCH",
 								JOptionPane.INFORMATION_MESSAGE);
 						vistaAdmin.getTxtUsername().setText("");
@@ -106,29 +111,31 @@ public class Controlador {
 			public void actionPerformed(ActionEvent arg0) {
 				String query = vistaUser.getTxtQuery().getText();
 
-				if (!model.isSelectQuery(query)) {
-					JOptionPane.showMessageDialog(null, "Només es poden fer consultes SELECT.", "ACTION BUTTON SEARCH",
-							JOptionPane.INFORMATION_MESSAGE);
-					return;
-				}
-
-				if (!model.checkQueryPermissions(query)) {
-					JOptionPane.showMessageDialog(null, "Els usuaris només poden fer consultes en la taula population.",
-							"ACTION BUTTON SEARCH", JOptionPane.INFORMATION_MESSAGE);
-					return;
-				}
-
-				if (model.isPopulationQuery(query) && !model.populationExists()) {
-					JOptionPane.showMessageDialog(null,
-							"Tens que importar la taula population abans de fer una consulta.", "ACTION BUTTON SEARCH",
-							JOptionPane.INFORMATION_MESSAGE);
-					return;
-				}
-
 				try {
 					vistaUser.getTblResults().setModel(model.executeQuery(query));
-				} catch (Exception ex) {
-					JOptionPane.showMessageDialog(null, "Error en la sintaxis de la consulta.", "ACTION BUTTON SEARCH",
+					model.setQueryLog(query);
+				} catch (SQLException ex) {
+					System.out.println(ex.getMessage());
+					JOptionPane.showMessageDialog(null, "Error, falta de permisos o error de sintaxis.",
+							"ACTION BUTTON SEARCH", JOptionPane.INFORMATION_MESSAGE);
+				}
+			}
+
+		});
+
+		vistaUser.getBtnExportar().addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				try {
+					model.exportCSV();
+					JOptionPane.showMessageDialog(null, "Dades exportades correctament!", "ACTION BUTTON SEARCH",
+							JOptionPane.INFORMATION_MESSAGE);
+				} catch (SQLException ex) {
+					System.out.println(ex.getMessage());
+					JOptionPane.showMessageDialog(null, "Error en la consulta.", "ACTION BUTTON SEARCH",
+							JOptionPane.INFORMATION_MESSAGE);
+				} catch (IOException ex) {
+					System.out.println(ex.getMessage());
+					JOptionPane.showMessageDialog(null, "Error escrivint l'arxiu.", "ACTION BUTTON SEARCH",
 							JOptionPane.INFORMATION_MESSAGE);
 				}
 			}
