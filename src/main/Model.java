@@ -31,53 +31,42 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 public class Model {
 	private String sessionUsername;
 	private String sessionPwd;
+	private String typus;
 	private String queryLog;
 	private String XMLROUTE = "resources" + File.separator + "xml";
 
-	public void setSessionUsername(String sessionUsername) {
-		this.sessionUsername = sessionUsername;
-	}
-
-	public void setSessionPwd(String sessionPwd) {
-		this.sessionPwd = sessionPwd;
+	public String getTypus() {
+		return typus;
 	}
 
 	public void setQueryLog(String queryLog) {
 		this.queryLog = queryLog;
 	}
 
-	public boolean checkUserInfo(String username, char[] pwd) {
+	public void userExists(String username, String pwd) throws Exception {
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
+			String pwdHash = DigestUtils.md5Hex(pwd);
+			Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/population", username, pwdHash);
 
-			String query = "SELECT pwd FROM users WHERE login = ?";
-
-			try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/population", "root", "");
-					PreparedStatement stmt = con.prepareStatement(query);) {
-
-				stmt.setString(1, username);
-
-				ResultSet rs = stmt.executeQuery();
-
-				if (rs.next()) {
-					String hashPwd = rs.getString("pwd");
-
-					return checkPwd(new String(pwd), hashPwd);
-				} else {
-					return false;
-				}
+			if (con.isValid(600)) {
+				this.sessionUsername = username;
+				this.sessionPwd = pwdHash;
+				checkCredentials();
+			} else {
+				throw new Exception("Error de connexió a la base de dades.");
 			}
 		} catch (SQLException | ClassNotFoundException ex) {
-			System.out.println(ex.getMessage());
-			return false;
+			throw new Exception("Error de connexió a la base de dades.");
 		}
 	}
 
-	public boolean signUpUser(String username, char[] pwd) {
+	public void signUpUser(String username, String pwd) throws Exception {
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
 
@@ -86,12 +75,12 @@ public class Model {
 			String queryInsert = "INSERT INTO users (login, pwd, typus) VALUES (?, ?, ?)";
 
 			try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/population", sessionUsername,
-					DigestUtils.md5Hex(sessionPwd));
+					sessionPwd);
 					PreparedStatement stmtCreate = con.prepareStatement(queryCreate);
 					PreparedStatement stmtPermissions = con.prepareStatement(queryPermissions);
 					PreparedStatement stmtInsert = con.prepareStatement(queryInsert);) {
 
-				String pwdHash = DigestUtils.md5Hex(new String(pwd));
+				String pwdHash = DigestUtils.md5Hex(pwd);
 
 				// Create user
 				stmtCreate.setString(1, username);
@@ -107,15 +96,16 @@ public class Model {
 				stmtInsert.setString(2, pwdHash);
 				stmtInsert.setString(3, "client");
 				int affectedRows = stmtInsert.executeUpdate();
-				return affectedRows > 0;
+				if (affectedRows == 0) {
+					throw new Exception("Error en la creació de l'usuari.");
+				}
 			}
 		} catch (SQLException | ClassNotFoundException ex) {
-			System.out.println(ex.getMessage());
-			return false;
+			throw new Exception("Error en la creació de l'usuari.");
 		}
 	}
 
-	public boolean importCSV(String route) {
+	public void importCSV(String route) throws Exception {
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
 
@@ -123,15 +113,14 @@ public class Model {
 
 			FileReader fr = new FileReader(new File(route), StandardCharsets.UTF_8);
 			BufferedReader br = new BufferedReader(fr);
-			String queryCreateTable = createTableQuery(br.readLine());
+			String csvHeader = br.readLine();
+			String queryCreateTable = createTableQuery(csvHeader);
+			String queryInsertRegistry = createInsertQuery(csvHeader);
 			br.close();
 			fr.close();
 
-			String queryInsertRegistry = "INSERT INTO population (country, population, density, area, fertility, age, urban, share)"
-					+ "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-
 			try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/population", sessionUsername,
-					DigestUtils.md5Hex(sessionPwd));
+					sessionPwd);
 					PreparedStatement stmtDelete = con.prepareStatement(queryDeleteTable);
 					PreparedStatement stmtCreate = con.prepareStatement(queryCreateTable);
 					PreparedStatement stmtInsert = con.prepareStatement(queryInsertRegistry);) {
@@ -160,51 +149,24 @@ public class Model {
 					int resInsertar = stmtInsert.executeUpdate();
 					if (resInsertar != 1) {
 						stmtDelete.executeUpdate();
-						return false;
+						throw new Exception("Error en la importació de les dades.");
 					}
 				}
 			}
-
-			return true;
 		} catch (SQLException | ClassNotFoundException | IOException ex) {
-			System.out.println(ex.getMessage());
-			return false;
+			throw new Exception("Error en la importació de les dades.");
+		} catch (ParserConfigurationException | TransformerException | SAXException ex) {
+			throw new Exception("Error en la lectura/escritura dels fitxers XML");
 		}
 	}
 
-	public boolean checkCredentials() {
-		try {
-			Class.forName("com.mysql.cj.jdbc.Driver");
-
-			String query = "SELECT typus FROM users WHERE login = ?";
-
-			try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/population", "root", "");
-					PreparedStatement stmt = con.prepareStatement(query);) {
-
-				stmt.setString(1, sessionUsername);
-
-				ResultSet rs = stmt.executeQuery();
-
-				if (rs.next()) {
-					String typus = rs.getString("typus");
-					return (typus.equals("admin"));
-				} else {
-					return false;
-				}
-			}
-		} catch (SQLException | ClassNotFoundException ex) {
-			System.out.println(ex.getMessage());
-			return false;
-		}
-	}
-
-	public DefaultTableModel executeQuery(String query) throws SQLException {
+	public DefaultTableModel executeQuery(String query) throws Exception {
 		DefaultTableModel tableModel = new DefaultTableModel();
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
 
 			try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/population", sessionUsername,
-					DigestUtils.md5Hex(sessionPwd)); PreparedStatement stmt = con.prepareStatement(query);) {
+					sessionPwd); PreparedStatement stmt = con.prepareStatement(query);) {
 
 				ResultSet rs = stmt.executeQuery();
 
@@ -224,58 +186,82 @@ public class Model {
 				}
 			}
 		} catch (SQLException | ClassNotFoundException ex) {
-			throw new SQLException();
+			throw new Exception("Error, falta de permisos o error de sintaxis.");
 		}
 		return tableModel;
 	}
 
-	public String retrieveXMLS() {
-		ArrayList<Country> countries = readXML();
+	public String retrieveXMLS() throws Exception {
 		String countriesData = "";
-		for (Country con : countries) {
-			countriesData += con.toString() + System.lineSeparator();
+		try {
+			ArrayList<Country> countries = readXML();
+			for (Country con : countries) {
+				countriesData += con.toString() + System.lineSeparator();
+			}
+		} catch (IOException | SAXException | ParserConfigurationException ex) {
+			throw new Exception("Error recuperant els fitxers XML");
 		}
 		return countriesData;
 	}
 
-	public void exportCSV() throws SQLException, IOException{
+	public void exportCSV() throws Exception {
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
 
 			try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/population", sessionUsername,
-					DigestUtils.md5Hex(sessionPwd)); PreparedStatement stmt = con.prepareStatement(queryLog);) {
+					sessionPwd); PreparedStatement stmt = con.prepareStatement(queryLog);) {
 
 				ResultSet rs = stmt.executeQuery();
 				ResultSetMetaData rsm = rs.getMetaData();
-				
+
 				String csvText = "";
-				
+
 				for (int i = 1; i < rsm.getColumnCount(); i++) {
 					csvText += rsm.getColumnName(i) + ";";
 				}
-				
+
 				csvText += System.lineSeparator();
-				
+
 				while (rs.next()) {
 					for (int i = 1; i < rsm.getColumnCount(); i++) {
 						csvText += rs.getString(i) + ";";
 					}
 					csvText += System.lineSeparator();
 				}
-				
+
 				rs.close();
-				
+
 				writeCsv(csvText);
 			}
 		} catch (SQLException | ClassNotFoundException ex) {
-			throw new SQLException();
+			throw new Exception("Error en la consulta.");
 		} catch (IOException ex) {
-			throw new IOException();
+			throw new Exception("Error escrivint l'arxiu.");
 		}
 	}
 
-	private boolean checkPwd(String pwd, String pwdHash) {
-		return DigestUtils.md5Hex(pwd).equals(pwdHash);
+	private void checkCredentials() {
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+
+			String query = "SELECT typus FROM users WHERE login = ?";
+
+			try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/population", sessionUsername,
+					sessionPwd); PreparedStatement stmt = con.prepareStatement(query);) {
+
+				stmt.setString(1, sessionUsername);
+
+				ResultSet rs = stmt.executeQuery();
+
+				if (rs.next()) {
+					this.typus = rs.getString("typus");
+				} else {
+					this.typus = "client";
+				}
+			}
+		} catch (SQLException | ClassNotFoundException ex) {
+			this.typus = "client";
+		}
 	}
 
 	private String createTableQuery(String headerCSV) {
@@ -292,7 +278,27 @@ public class Model {
 		return queryCreateTable;
 	}
 
-	private void createXMLFiles(ArrayList<Country> countries) {
+	private String createInsertQuery(String headerCSV) {
+		String[] fields = headerCSV.split(";");
+
+		String queryInsertRegistry = "INSERT INTO population (";
+		String queryValues = "VALUES (";
+
+		for (String field : fields) {
+			queryInsertRegistry += field + ", ";
+			queryValues += "?, ";
+		}
+
+		queryInsertRegistry = queryInsertRegistry.substring(0, queryInsertRegistry.length() - 2);
+		queryValues = queryValues.substring(0, queryValues.length() - 2);
+
+		queryInsertRegistry += ") " + queryValues + ");";
+
+		return queryInsertRegistry;
+	}
+
+	private void createXMLFiles(ArrayList<Country> countries)
+			throws ParserConfigurationException, TransformerException {
 		File xmlDir = new File("resources/xml");
 		if (!xmlDir.exists()) {
 			xmlDir.mkdir();
@@ -356,14 +362,12 @@ public class Model {
 					e.printStackTrace();
 				}
 			}
-		} catch (ParserConfigurationException ex) {
-			System.out.println("Error construyendo el documento");
-		} catch (TransformerException ex) {
-			System.out.println("Error escribiendo el documento");
+		} catch (ParserConfigurationException | TransformerException ex) {
+			throw ex;
 		}
 	}
 
-	private ArrayList<Country> readCSV(String routeCSV) {
+	private ArrayList<Country> readCSV(String routeCSV) throws IOException {
 		ArrayList<Country> countries = new ArrayList<Country>();
 		try {
 			FileReader fr = new FileReader(new File(routeCSV), StandardCharsets.UTF_8);
@@ -377,13 +381,13 @@ public class Model {
 			}
 			br.close();
 			fr.close();
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (IOException ex) {
+			throw ex;
 		}
 		return countries;
 	}
 
-	private ArrayList<Country> readXML() {
+	private ArrayList<Country> readXML() throws IOException, SAXException, ParserConfigurationException {
 		ArrayList<Country> countries = new ArrayList<Country>();
 
 		File xmlDir = new File(XMLROUTE);
@@ -413,20 +417,19 @@ public class Model {
 						countries.add(country);
 					}
 				}
-			} catch (Exception e) {
-				e.printStackTrace();
+			} catch (IOException | SAXException | ParserConfigurationException ex) {
+				throw ex;
 			}
 		}
 
 		return countries;
 	}
-	
+
 	private void writeCsv(String csvText) throws IOException {
 		try (FileWriter fw = new FileWriter("resources\\csv\\exportedData.csv")) {
 			fw.write(csvText);
 		} catch (IOException ex) {
-			ex.printStackTrace();
-			throw new IOException("Error escrivint l'arxiu");			
+			throw ex;
 		}
 	}
 
